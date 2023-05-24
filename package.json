@@ -20,7 +20,10 @@
     "abbreviate",
     "abbreviate string",
     "abbreviate array",
-    "abbrev"
+    "abbrev",
+    "unique",
+    "unique string",
+    "unique array"
   ],
   "author": "Eyob Samuel (leeyoba@gmail.com)",
   "repository": {
