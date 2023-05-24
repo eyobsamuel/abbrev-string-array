@@ -10,8 +10,9 @@
 interface IOptions {
   matchAlikeLen?: boolean;
   matchLen?: boolean;
-  ignoreCase?: boolean;
   suffix?: string;
+  minLen?: number;
+  ignoreCase?: boolean;
 }
 
 function trimSuffix(oldArr: string[], result: string[]) {
@@ -22,17 +23,18 @@ function trimSuffix(oldArr: string[], result: string[]) {
 
 function abbrevStringArray(
   arr: Array<string>,
-  { matchAlikeLen, matchLen, suffix, ignoreCase = true }: IOptions = {}
+  { matchAlikeLen, matchLen, suffix, minLen, ignoreCase = true }: IOptions = {}
 ) {
+  let originalArr = [...arr]
   if (matchAlikeLen === true && matchLen === true)
     throw new Error(
-      "Exactly one parameter should be passed from matchAlikeLen and matchLen."
+      "Exactly one true value should be passed from matchAlikeLen and matchLen."
     );
   if (matchAlikeLen == null && matchLen == null) {
     let result = arr.map(
-      (str: string, idx: number) =>
-        [...str].reduce((acc, val) => {
-          return arr.slice(0, idx).some((subStr: string) => {
+      (str: string, idx: number) => {
+          let char =  [...str].reduce((acc: string, val) => {
+          return (minLen && minLen > acc.length) || arr.slice(0, idx).some((subStr: string) => {
             if (ignoreCase)
               return (
                 subStr.toLowerCase() != str.toLowerCase() &&
@@ -43,13 +45,17 @@ function abbrevStringArray(
             ? acc + val
             : acc;
         }) + (suffix || "")
+        arr[idx] = char;
+        return char
+      }
     );
-    return suffix ? trimSuffix(arr, result) : result;
+    
+    return suffix ? trimSuffix(originalArr, result) : result;
   }
   if (matchAlikeLen) {
     let result = arr.map(
-      (str: string) =>
-        [...str].reduce((acc, val) => {
+      (str: string, idx) => {
+        let char = [...str].reduce((acc, val) => {
           if (ignoreCase)
             return arr.some(
               (subStr: string) => subStr != str && !subStr.indexOf(acc)
@@ -65,25 +71,30 @@ function abbrevStringArray(
               ? acc + val
               : acc;
         }) + (suffix || "")
+        arr[idx] = char;
+        return char
+      }
     );
-    return suffix ? trimSuffix(arr, result) : result;
+    return suffix ? trimSuffix(originalArr, result) : result;
   }
   if (matchLen) {
     let tempStrings: string[] = arr.map(
-      (str: string, idx: number) =>
-        [...str].reduce((acc, val) => {
+      (str: string, idx: number) => {
+        let char =  [...str].reduce((acc, val) => {
           return arr
             .slice(0, idx)
             .some((subStr: string) => subStr != str && !subStr.indexOf(acc))
             ? acc + val
             : acc;
         }) + (suffix || "")
-    );
+        arr[idx] = char;
+        return char
+      });
     var longestLength = tempStrings?.sort(
       (a: string, b: string) => b.length - a.length
     )[0]?.length;
     let result = arr.map((subStr: string) => subStr.slice(0, longestLength));
-    return suffix ? trimSuffix(arr, result) : result;
+    return suffix ? trimSuffix(originalArr, result) : result;
   }
   return [];
 }
