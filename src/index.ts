@@ -1,8 +1,8 @@
 /**
- * Abbreviate strings by assigning a unique value to each element within the array.
+ * Abbreviate strings by assigning a distinct minimum value to each element in the array.
  *
  * @param {string[]} strings - List of strings
- * @param {{matchAlikeLen: boolean, matchLen: boolean, suffix: string, ignoreCase: boolean}} [config = { matchAlikeLen: undefined, matchLen: undefined, suffix: undefined, ignoreCase: true }] - Configuration
+ * @param {{matchAlikeLen: boolean, matchLen: boolean, suffix: string, caseSensitive: boolean}} [config = { matchAlikeLen: undefined, matchLen: undefined, suffix: undefined, caseSensitive: true }] - Configuration
  * @returns {string[]} - List of abbreviated strings
  *
  */
@@ -12,7 +12,7 @@ interface IOptions {
   matchLen?: boolean;
   suffix?: string;
   minLen?: number;
-  ignoreCase?: boolean;
+  caseSensitive?: boolean;
 }
 
 function trimSuffix(oldArr: string[], result: string[]) {
@@ -23,53 +23,57 @@ function trimSuffix(oldArr: string[], result: string[]) {
 
 function abbrevStringArray(
   arr: Array<string>,
-  { matchAlikeLen, matchLen, suffix, minLen, ignoreCase = true }: IOptions = {}
+  { matchAlikeLen, matchLen, suffix, minLen, caseSensitive = false }: IOptions = {}
 ) {
   let originalArr = [...arr]
   if (matchAlikeLen === true && matchLen === true)
     throw new Error(
       "Exactly one true value should be passed from matchAlikeLen and matchLen."
     );
-  if (matchAlikeLen == null && matchLen == null) {
+  if ((matchAlikeLen == null && matchLen == null) || (matchAlikeLen == false && matchLen == null) || (matchAlikeLen == null && matchLen == false)) {
     let result = arr.map(
       (str: string, idx: number) => {
-          let char =  [...str].reduce((acc: string, val) => {
+          let char = str.length> 0 ? [...str].reduce((acc: string, val) => {
           return (minLen && minLen > acc.length) || arr.slice(0, idx).some((subStr: string) => {
-            if (ignoreCase)
+            if (!caseSensitive)
               return (
                 subStr.toLowerCase() != str.toLowerCase() &&
                 !subStr.toLowerCase().indexOf(acc.toLowerCase())
               );
-            else return subStr != str && !subStr.indexOf(acc);
+            else 
+              return subStr != str && !subStr.indexOf(acc);
           })
             ? acc + val
             : acc;
-        }) + (suffix || "")
+        }) + (suffix || "") : ""
         arr[idx] = char;
         return char
       }
     );
-    
+
     return suffix ? trimSuffix(originalArr, result) : result;
   }
   if (matchAlikeLen) {
     let result = arr.map(
       (str: string, idx) => {
         let char = [...str].reduce((acc, val) => {
-          if (ignoreCase)
-            return arr.some(
+          if (caseSensitive)
+            return (minLen && minLen > acc.length) || arr.some(
               (subStr: string) => subStr != str && !subStr.indexOf(acc)
             )
               ? acc + val
               : acc;
-          else
-            return arr.some(
+          
+          else 
+            return (minLen && minLen > acc.length) || arr.some(
               (subStr: string) =>
                 subStr.toLowerCase() != str.toLowerCase() &&
                 !subStr.toLowerCase().indexOf(acc.toLowerCase())
             )
               ? acc + val
               : acc;
+
+          
         }) + (suffix || "")
         arr[idx] = char;
         return char
@@ -80,15 +84,13 @@ function abbrevStringArray(
   if (matchLen) {
     let tempStrings: string[] = arr.map(
       (str: string, idx: number) => {
-        let char =  [...str].reduce((acc, val) => {
-          return arr
+        return [...str].reduce((acc, val) => {
+          return (minLen && minLen > acc.length) || arr
             .slice(0, idx)
             .some((subStr: string) => subStr != str && !subStr.indexOf(acc))
             ? acc + val
             : acc;
         }) + (suffix || "")
-        arr[idx] = char;
-        return char
       });
     var longestLength = tempStrings?.sort(
       (a: string, b: string) => b.length - a.length

@@ -1,7 +1,7 @@
 {
   "name": "abbrev-string-array",
   "version": "1.0.0",
-  "description": "Abbreviate strings by assigning a unique value to each element within the array.",
+  "description": "Abbreviate strings by assigning a distinct minimum value to each element in the array.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
