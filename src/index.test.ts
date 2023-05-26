@@ -252,8 +252,8 @@ describe("abbrevStringArray will abbreviate list of strings", () => {
         "Mon",
       ];
       expect(abbrev(strings)).toEqual([
-        "Mon",
-        "Mon",
+        "M",
+        "Mo",
         "Mon"
       ]);
     });
